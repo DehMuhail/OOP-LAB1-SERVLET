@@ -1,6 +1,6 @@
 package com.misha.labam.servlet;
 
-import com.misha.labam.entity.Role;
+import com.misha.labam.dto.LoginDto;
 import com.misha.labam.entity.User;
 import com.misha.labam.security.JwtUtil;
 import com.misha.labam.service.UserService;
@@ -21,6 +21,6 @@ public class UserAdmin extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        User byEmail = userService.saveAsAdmin(new User(null,"admin@admin","admin",Role.ADMIN));
+        User byEmail = userService.register(new LoginDto("admin@admin","admin"));
     }
 }

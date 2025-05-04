@@ -10,6 +10,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Table(name = "products")
 @ToString
 public class Product {
     @Id

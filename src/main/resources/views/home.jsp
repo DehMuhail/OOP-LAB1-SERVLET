@@ -80,6 +80,9 @@
     <form action="/profile" method="get">
         <button type="submit">Go to Profile Page</button>
     </form>
+    <form action="/order" method="get">
+        <button type="submit">Go to Orders</button>
+    </form>
     <%
         User user = (User) request.getAttribute("user");
         if (user != null && user.getRole().equals(Role.ADMIN)) {

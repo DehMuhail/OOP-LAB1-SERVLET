@@ -24,7 +24,6 @@ public class HomeServlet extends HttpServlet {
         if (cookie1 != null) {
 
             User byEmail = userService.findByEmail(jwtUtil.getUsername(cookie1.getValue()));
-            System.out.println(byEmail);
             req.setAttribute("user", byEmail);
         }
         req.getRequestDispatcher("/WEB-INF/classes/views/home.jsp").forward(req, resp);

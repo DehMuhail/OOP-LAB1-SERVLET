@@ -34,42 +34,23 @@
 <form action="/" method="get">
     <button type="submit">Home Page</button>
 </form>
-<h1>Product List</h1>
+<h1>Orders </h1>
 
 <div class="product-container">
-    <c:forEach items="${products}" var="product">
+    <c:forEach items="${orders}" var="order">
         <div class="product-card">
-            <h3>${product.name}</h3>
-            <p>Price: $${product.price}</p>
-            <p>Stock: ${product.stock}</p>
-            <form action="/order?id=${product.id}" method="post">
-
-                <button type="submit">Add to order</button>
+            <h3>${order.product.id}</h3>
+            <h3>${order.product.name}</h3>
+            <h3>${order.product.price}</h3>
+            <h3>${order.product.stock}</h3>
+            <form action="/orderdelete?id=${order.product.id}" method="get">
+                <button type="submit">Delete</button>
             </form>
-
-            <c:if test="${admin}">
-                <div class="product-actions">
-                    <form action="/product/delete" method="post" style="display:inline;">
-                        <input type="hidden" name="id" value="${product.id}">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </div>
-            </c:if>
         </div>
     </c:forEach>
+    <form action="/orderdelete" method="get">
+        <button type="submit">Delete All</button>
+    </form>
 </div>
-
-<c:if test="${admin}">
-    <div class="admin-only">
-        <h2>Admin Actions</h2>
-        <a href="/product/add" class="btn btn-success">Add New Product</a>
-    </div>
-</c:if>
-
-<c:if test="${not empty param.message}">
-    <div class="alert alert-info">
-            ${param.message}
-    </div>
-</c:if>
 </body>
 </html>

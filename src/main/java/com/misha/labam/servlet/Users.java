@@ -24,13 +24,13 @@ public class Users extends HttpServlet {
         String name = req.getUserPrincipal().getName();
         User byEmail = userService.findByEmail(name);
         if (!byEmail.getRole().equals(Role.ADMIN)) {
-            List<User> all = userService.findAll();
+            List<User> all = userService.getAllUsers();
             System.out.println(all);
             req.setAttribute("users", all);
             req.setAttribute("admin", false);
             req.getRequestDispatcher("/WEB-INF/classes/views/users.jsp").forward(req, resp);
         } else {
-            List<User> all = userService.findAll();
+            List<User> all = userService.getAllUsers();
             System.out.println(all);
             req.setAttribute("users", all);
             req.setAttribute("admin", true);

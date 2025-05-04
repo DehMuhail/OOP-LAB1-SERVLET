@@ -1,44 +1,40 @@
 package com.misha.labam.service;
 
+import com.misha.labam.dao.ProductDao;
 import com.misha.labam.entity.Product;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
-@ApplicationScoped
 public class ProductService {
+    private static final Logger logger = Logger.getLogger(ProductService.class.getName());
+    private final ProductDao productDao = new ProductDao();
 
-    public EntityManager entityManager = Persistence.createEntityManagerFactory("default").createEntityManager();
-
-    public void save(Product product) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(product);
-        entityManager.getTransaction().commit();
+    public Product addProduct(Product product) {
+        logger.info("Adding product: " + product.getName());
+        productDao.save(product);
+        logger.info("Product added with id: " + product.getId());
+        return product;
     }
 
-    public Optional<Product> findById(Long id) {
-        return Optional.ofNullable(entityManager.find(Product.class, id));
+    public Optional<Product> getProductById(Long id) {
+        logger.info("Retrieving product with id: " + id);
+        return productDao.findById(id);
     }
 
-    public List<Product> findAll() {
-        return entityManager.createQuery("SELECT p FROM Product p", Product.class).getResultList();
+    public List<Product> getAllProducts() {
+        logger.info("Retrieving all products");
+        return productDao.findAll();
     }
 
-    public void update(Product product) {
-        entityManager.merge(product);
+    public void updateProduct(Product product) {
+        logger.info("Updating product with id: " + product.getId());
+        productDao.update(product);
     }
 
     public void delete(Long id) {
-        Product product = entityManager.find(Product.class, id);
-        entityManager.getTransaction().begin();
-        if (product != null) {
-            entityManager.remove(product);
-        }
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
+        logger.info("Deleting product with id: " + id);
+        productDao.delete(id);
     }
 }

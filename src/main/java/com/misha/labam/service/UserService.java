@@ -1,126 +1,77 @@
 package com.misha.labam.service;
 
-
+import com.misha.labam.dao.UserDao;
 import com.misha.labam.dto.LoginDto;
-import com.misha.labam.entity.Role;
 import com.misha.labam.entity.User;
+import com.misha.labam.entity.Role;
 import com.misha.labam.security.PasswordService;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Persistence;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 
-@ApplicationScoped
 public class UserService {
+    private final UserDao userDao = new UserDao();
+    private final PasswordService passwordService = new PasswordService();
+    private static final Logger logger = Logger.getLogger(UserService.class.getName());
 
-    private  PasswordService passwordService = new PasswordService();
+    public User register(LoginDto dto) {
+        logger.info("Attempting to register user with email: " + dto.getEmail());
 
-
-
-
-    public User findByEmail(String email) {
-        try(EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-            EntityManager em = emf.createEntityManager()) {
-            em.clear();
-            User user = em.createQuery("SELECT u FROM User u where u.email = :email", User.class).setParameter("email", email).getSingleResult();
-            em.refresh(user);
-            return user;
-        }catch (RuntimeException e){
-            return null;
+        if (userDao.exists(dto.getEmail())) {
+            logger.warning("User with email already exists: " + dto.getEmail());
+            throw new RuntimeException("User already exists");
         }
-    }
 
-    public List<User> findAll() {
-        try(EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-            EntityManager em = emf.createEntityManager()) {
-            return em.createQuery("SELECT u FROM User u ",User.class).getResultList();
-        }
-    }
+        String hashedPassword = passwordService.hashPassword(dto.getPassword());
+        Role role = dto.getEmail().equals("admin@admin") ? Role.ADMIN : Role.USER;
+        User user = new User(null, dto.getEmail(), hashedPassword, role);
 
-
-
-    public boolean exists(String email) {
-        try(EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-            EntityManager em = emf.createEntityManager()) {
-            Long count = em.createQuery(
-                            "SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
-                    .setParameter("email", email)
-                    .getSingleResult();
-
-            return count > 0;
-        }
-    }
-
-
-
-    public User save(LoginDto loginDto) {
-        try (EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-             EntityManager em = emf.createEntityManager()) {
-            EntityTransaction transaction = em.getTransaction();
-            transaction.begin();
-
-            User user = new User(
-                    null,
-                    loginDto.getEmail(),
-                    passwordService.hashPassword(loginDto.getPassword()),
-                    loginDto.getEmail().equals("admin@admin")?Role.ADMIN:Role.USER
-            );
-            em.persist(user);
-            transaction.commit();
-            return user;
-        }
+        User savedUser = userDao.save(user);
+        logger.info("User registered successfully with id: " + savedUser.getId());
+        return savedUser;
     }
 
     public User authenticate(String email, String password) {
-        User byEmailWithPW = findByEmail(email);
-        System.out.println(byEmailWithPW);
-        System.out.println(byEmailWithPW.getPassword());
-        if (passwordService.checkPassword( password,byEmailWithPW.getPassword())) {
-            return byEmailWithPW;
-        }else {
-            throw new RuntimeException("Wrong password");
+        logger.info("Authenticating user: " + email);
+
+        Optional<User> userOpt = userDao.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            logger.warning("Authentication failed: user not found");
+            throw new RuntimeException("User not found");
         }
-    }
 
-    public void deleteUser(long userId) {
-        try (EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-             EntityManager em = emf.createEntityManager()) {
-            EntityTransaction transaction = em.getTransaction();
-            transaction.begin();
-
-            // Find the user within the same transaction
-            User user = em.find(User.class, userId);
-            if (user != null) {
-                em.remove(user);
-            }
-
-            transaction.commit();
-        }
-    }
-
-    public User findById(Long id) {
-        try(EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-            EntityManager em = emf.createEntityManager()) {
-            em.clear();
-            User user = em.createQuery("SELECT u FROM User u where u.id = :id", User.class).setParameter("id", id).getSingleResult();
-            em.refresh(user);
+        User user = userOpt.get();
+        if (passwordService.checkPassword(password, user.getPassword())) {
+            logger.info("Authentication successful for user: " + email);
             return user;
+        } else {
+            logger.warning("Authentication failed: invalid password for user " + email);
+            throw new RuntimeException("Invalid password");
         }
     }
 
-    public User saveAsAdmin(User admin) {
-        try (EntityManagerFactory emf = Persistence.createEntityManagerFactory("default");
-             EntityManager em = emf.createEntityManager()) {
-            EntityTransaction transaction = em.getTransaction();
-            transaction.begin();
-            admin.setPassword(passwordService.hashPassword(admin.getPassword()));
-            em.persist(admin);
-            transaction.commit();
-            return admin;
-        }
+    public List<User> getAllUsers() {
+        logger.info("Retrieving all users");
+        return userDao.findAll();
+    }
+
+    public void deleteUser(long id) {
+        logger.info("Deleting user with id: " + id);
+        userDao.delete(id);
+    }
+
+    public boolean exists(String email) {
+        boolean exists = userDao.exists(email);
+        logger.info("Checked existence for user " + email + ": " + exists);
+        return exists;
+    }
+
+    public User findByEmail(String userName) {
+        logger.info("Finding user by email: " + userName);
+        return userDao.findByEmail(userName).orElseThrow(() -> {
+            logger.warning("User not found: " + userName);
+            return new RuntimeException("User not found");
+        });
     }
 }
-

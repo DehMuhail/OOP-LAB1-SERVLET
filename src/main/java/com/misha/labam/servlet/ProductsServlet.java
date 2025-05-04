@@ -31,13 +31,13 @@ public class ProductsServlet extends HttpServlet {
             String name = req.getUserPrincipal().getName();
             User byEmail = userService.findByEmail(name);
             if (!byEmail.getRole().equals(Role.ADMIN)) {
-                productService.findAll();
-                req.setAttribute("products", productService.findAll());
+                productService.getAllProducts();
+                req.setAttribute("products", productService.getAllProducts());
                 req.setAttribute("admin",false);
                 req.getRequestDispatcher("/WEB-INF/classes/views/products.jsp").forward(req, resp);
             }else {
-                productService.findAll();
-                req.setAttribute("products", productService.findAll());
+                productService.getAllProducts();
+                req.setAttribute("products", productService.getAllProducts());
                 req.setAttribute("admin",true);
                 req.getRequestDispatcher("/WEB-INF/classes/views/products.jsp").forward(req, resp);
             }

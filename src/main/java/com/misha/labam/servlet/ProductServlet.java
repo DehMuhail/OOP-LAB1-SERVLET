@@ -29,7 +29,7 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
-        req.setAttribute("product", productService.findById(Long.valueOf(pathInfo)));
+        req.setAttribute("product", productService.getProductById(Long.valueOf(pathInfo)));
         req.getRequestDispatcher("/WEB-INF/classes/views/product.jsp").forward(req, resp);
     }
 
@@ -39,7 +39,7 @@ public class ProductServlet extends HttpServlet {
         String price = req.getParameter("price");
         String stock = req.getParameter("stock");
         System.out.println(name + " " + price + " " + stock);
-        productService.save(new Product(null,name,Double.parseDouble(price),Integer.parseInt(stock)));
+        productService.addProduct(new Product(null,name,Double.parseDouble(price),Integer.parseInt(stock)));
         resp.sendRedirect("/products");
     }
 
