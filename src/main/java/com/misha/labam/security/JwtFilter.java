@@ -38,14 +38,18 @@ public class JwtFilter implements Filter {
         if (jwt != null && !jwt.isBlank() && jwtUtil.validateToken(jwt)) {
             String username = jwtUtil.getUsername(jwt);
             if (!userService.exists(username)) {
-                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User " + username + " does not exist");
+                if (!res.isCommitted()) {
+                    res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User " + username + " does not exist");
+                }
                 return;
             }
 
             req = new AuthenticatedRequestWrapper(req, username);
             chain.doFilter(req, response);
         } else {
-            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT not valid");
+            if (!res.isCommitted()) {
+                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT not valid");
+            }
         }
     }
 
